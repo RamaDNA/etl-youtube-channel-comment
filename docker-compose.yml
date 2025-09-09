@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  youtube-scraper:
+    build: 
+      context: .
+      dockerfile: scripts/Dockerfile
+    container_name: youtube_scraper
+    env_file: .env
+    volumes:
+      - ./scripts:/app
+    command: python main.py

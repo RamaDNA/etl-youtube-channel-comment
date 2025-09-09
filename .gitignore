@@ -1,0 +1,8 @@
+# Environment files
+.env
+.env.*
+!.env.example   # example env 
+/scripts/.latest_video_comments.csv
+/scripts/.latest_video_comments.csv.*
+/scripts/.Dockerfile.
+.docker-compose.override.yml.
