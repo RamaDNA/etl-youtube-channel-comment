@@ -1,4 +1,9 @@
+#class function
 from youtube_api import YouTubeAPI
+from dataset_comment_transform import TransformDataset
+
+
+#library
 from dotenv import load_dotenv
 import os
 
@@ -9,7 +14,7 @@ def main():
     yt = YouTubeAPI(os.getenv("YOUTUBE_API_KEY"), os.getenv("CHANNEL_ID"))
 
     print("Ambil video terbaru dari channel...")
-    latest_videos = yt.get_latest_videos(max_results=5)  # ubah angka untuk ambil lebih banyak video
+    latest_videos = yt.get_latest_videos(max_results=3)  # ubah angka untuk ambil lebih banyak video
     print(f"Video terbaru: {latest_videos}")
 
     all_comments = []
@@ -23,6 +28,12 @@ def main():
 
     # Simpan ke CSV
     yt.save_to_csv(all_comments, "latest_video_comments.csv")
+
+    # preprocessing CSV
+    transform = TransformDataset("latest_video_comments.csv")
+    transform.save_to_csv("data_processed.csv")
+
+
 
 
 if __name__ == "__main__":
