@@ -11,15 +11,15 @@
 # ========================================
 # Output / generated files
 # ========================================
-./scripts/.latest_video_comments.csv
-./scripts/.latest_video_comments.csv.*
+scripts/latest_video_comments.csv
+scripts/latest_video_comments.csv.*
 
 
 # ========================================
 # Docker related
 # ========================================
-/scripts/Dockerfile     # ignore Dockerfile di folder scripts kalau memang tidak dipakai
+scripts/Dockerfile.dev    # ignore Dockerfile di folder scripts kalau memang tidak dipakai
 docker-compose.override.yml  # ignore override di root
 
 # Kalau kamu memang pakai variasi file override
-.docker-compose.override.yml.*
+docker-compose.override.yml.*
