@@ -11,8 +11,8 @@
 # ========================================
 # Output / generated files
 # ========================================
-./scripts/latest_video_comments.csv
-./scripts/latest_video_comments.csv.*
+./scripts/.latest_video_comments.csv
+./scripts/.latest_video_comments.csv.*
 
 
 # ========================================
