@@ -14,7 +14,7 @@ def main():
     yt = YouTubeAPI(os.getenv("YOUTUBE_API_KEY"), os.getenv("CHANNEL_ID"))
 
     print("Ambil video terbaru dari channel...")
-    latest_videos = yt.get_latest_videos(max_results=3)  # ubah angka untuk ambil lebih banyak video
+    latest_videos = yt.get_latest_videos(max_results=5)  # ubah angka untuk ambil lebih banyak video
     print(f"Video terbaru: {latest_videos}")
 
     all_comments = []

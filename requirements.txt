@@ -3,4 +3,4 @@ python-dotenv
 textblob
 pandas
 googletrans
-sastrawi
+Sastrawi

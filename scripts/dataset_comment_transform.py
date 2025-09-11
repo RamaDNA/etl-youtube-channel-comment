@@ -2,7 +2,7 @@ import pandas as pd
 import re
 from textblob import TextBlob
 from googletrans import Translator
-from sastrawi.Steamer.StemmerFactory import StemmerFactory
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 
 class TransformDataset:
     def __init__(self, load_data_csv):
@@ -70,28 +70,50 @@ class TransformDataset:
 
     def preprocessing_data_comments(self):
         df = self.load_data_csv.copy()
+
+        # Pastikan kolom wajib ada
+        required_cols = {"video_title", "comment", "published_at"}
+        missing = required_cols - set(df.columns)
+        if missing:
+            raise ValueError(f"Kolom berikut tidak ada di CSV: {missing}")
+
         # Cleaning
         df["clean_comment"] = df["comment"].apply(self.clean_text)
+
         # Drop kosong setelah cleaning
         df = df[df["clean_comment"].str.strip() != ""].copy()
         df.reset_index(drop=True, inplace=True)
+
         # Normalisasi slang
         df["normalized"] = df["clean_comment"].apply(self.normalize_slang)
+
         # Word elongation handling
         df["shortened"] = df["normalized"].apply(self.handle_word_elongation)
+
         # Stemming
         df["stemmed"] = df["shortened"].apply(self.stemming)
+
         # Tokenization
         df["tokens"] = df["stemmed"].apply(self.tokenize)
-        # Translate
-        df["translate_english"] = df["stemmed"].apply(self.translate_to_english)
+
+        # Translate pakai teks yang masih natural (misalnya shortened)
+        df["translate_english"] = df["shortened"].apply(self.translate_to_english)
+
         # Sentiment
         df["sentiment"] = df["translate_english"].apply(self.get_sentiment)
-        
-        field_user = ["clean_comment", "normalized", "shortened", "stemmed", "tokens", 
-                      "translate_english", "sentiment", "published_at"]
+
+        field_user = [
+            "video_id",
+            "video_title",
+            "stemmed",
+            "tokens",
+            "translate_english",
+            "sentiment",
+            "published_at"
+        ]
         new_df = df[field_user]
         return new_df
+
 
     def save_to_csv(self, output_path):
         """
