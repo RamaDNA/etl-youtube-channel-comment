@@ -3,6 +3,7 @@ import re
 from textblob import TextBlob
 from googletrans import Translator
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 
 class TransformDataset:
     def __init__(self, load_data_csv):
@@ -11,6 +12,11 @@ class TransformDataset:
         # Stemmer Sastrawi
         factory = StemmerFactory()
         self.stemmer = factory.create_stemmer()
+
+        #stopword remover Sastrawi
+        stop_factory = StopWordRemoverFactory()
+        self.stopwords = stop_factory.create_stop_word_remover()
+
         # dictionary slang indonesian
         self.slang_dict = {
             "gk": "tidak",
@@ -50,6 +56,9 @@ class TransformDataset:
         # "baaaagusss" -> "bagus"
         return re.sub(r'(.)\1{2,}', r'\1', text)
     
+    def remove_stopwords(self, text):
+        return self.stopwords.remove(text)
+
     def tokenize(self, text):
         return text.split()
     
@@ -80,7 +89,7 @@ class TransformDataset:
         # Cleaning
         df["clean_comment"] = df["comment"].apply(self.clean_text)
 
-        # Drop kosong setelah cleaning
+        # Drop kosong setelah cleaning karena jika hanya emote bakal null data
         df = df[df["clean_comment"].str.strip() != ""].copy()
         df.reset_index(drop=True, inplace=True)
 
@@ -93,8 +102,11 @@ class TransformDataset:
         # Stemming
         df["stemmed"] = df["shortened"].apply(self.stemming)
 
+        #stopword removal
+        df["stopword"] = df["stemmed"].apply(self.remove_stopwords)
+
         # Tokenization
-        df["tokens"] = df["stemmed"].apply(self.tokenize)
+        df["tokens"] = df["stopword"].apply(self.tokenize)
 
         # Translate pakai teks yang masih natural (misalnya shortened)
         df["translate_english"] = df["shortened"].apply(self.translate_to_english)
@@ -105,13 +117,16 @@ class TransformDataset:
         field_user = [
             "video_id",
             "video_title",
-            "stemmed",
+            "stopword",
             "tokens",
             "translate_english",
             "sentiment",
             "published_at"
         ]
         new_df = df[field_user]
+        # drop duplicates jika ada
+        new_df = new_df.drop_duplicates(subset="stopword")
+
         return new_df
 
 
