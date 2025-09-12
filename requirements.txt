@@ -2,5 +2,5 @@ google-api-python-client
 python-dotenv
 textblob
 pandas
-googletrans
+deep-translator
 Sastrawi

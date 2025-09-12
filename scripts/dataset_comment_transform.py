@@ -1,14 +1,13 @@
 import pandas as pd
 import re
 from textblob import TextBlob
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 
 class TransformDataset:
     def __init__(self, load_data_csv):
         self.load_data_csv = pd.read_csv(load_data_csv)
-        self.translator = Translator() # for translator
         # Stemmer Sastrawi
         factory = StemmerFactory()
         self.stemmer = factory.create_stemmer()
@@ -65,12 +64,12 @@ class TransformDataset:
     def stemming(self, text):
         return self.stemmer.stem(text)
 
-    def translate_to_english(self, text): #translate not working fix it
+    def translate_to_english(self, text):
         try:
-            translated = self.translator.translate(str(text), src="id", dest="en")
-            return translated.text
-        except Exception as e:
-            return str(text)  # kalau error, balikin text aslinya
+            translated = GoogleTranslator(source="id", target="en").translate(str(text))
+            return translated
+        except Exception:
+            return str(text)
 
     def get_sentiment(self, text):
         # Use TextBlob for sentiment polarity
@@ -80,20 +79,20 @@ class TransformDataset:
     def preprocessing_data_comments(self):
         df = self.load_data_csv.copy()
 
-        # Pastikan kolom wajib ada
+        # make sure have some video
         required_cols = {"video_title", "comment", "published_at"}
         missing = required_cols - set(df.columns)
         if missing:
             raise ValueError(f"Kolom berikut tidak ada di CSV: {missing}")
 
-        # Cleaning
+        # Cleaning text
         df["clean_comment"] = df["comment"].apply(self.clean_text)
 
-        # Drop kosong setelah cleaning karena jika hanya emote bakal null data
+        # drop null data because sometimes only using emote for comment
         df = df[df["clean_comment"].str.strip() != ""].copy()
         df.reset_index(drop=True, inplace=True)
 
-        # Normalisasi slang
+        # normalization slang words
         df["normalized"] = df["clean_comment"].apply(self.normalize_slang)
 
         # Word elongation handling
