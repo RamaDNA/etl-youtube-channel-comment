@@ -1,4 +1,4 @@
-# YouTube Comments Scraper
+# Get YouTube Comments 
 
 This project allows you to fetch comments from YouTube using the **YouTube Data API v3** and run it with **Docker Compose v3.9**.
 
