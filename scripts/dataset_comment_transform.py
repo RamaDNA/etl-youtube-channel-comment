@@ -1,9 +1,11 @@
 import pandas as pd
 import re
-from textblob import TextBlob
 from deep_translator import GoogleTranslator
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+
+#for sentiment prediction my device can't handle it
+# from transformers import pipeline 
 
 class TransformDataset:
     def __init__(self, load_data_csv):
@@ -34,6 +36,13 @@ class TransformDataset:
             "blm": "belum",
             "btw": "by the way",
         }
+
+        # Sentiment classifier (zero-shot) my device can't handle it
+        # self.classifier = pipeline(
+        #     "zero-shot-classification",
+        #     model="joeddav/xlm-roberta-large-xnli"
+        # )
+        # self.labels = ["positif", "negatif", "netral"]
     
     def clean_text(self, text):
         # Lowercase
@@ -72,9 +81,13 @@ class TransformDataset:
             return str(text)
 
     def get_sentiment(self, text):
-        # Use TextBlob for sentiment polarity
-        blob = TextBlob(str(text))
-        return blob.sentiment.polarity
+        """
+        Zero-shot sentiment classification: positif, negatif, netral
+        """
+        if not text or str(text).strip() == "":
+            return "netral"
+        result = self.classifier(str(text), candidate_labels=self.labels)
+        return result["labels"][0]
 
     def preprocessing_data_comments(self):
         df = self.load_data_csv.copy()
@@ -107,20 +120,41 @@ class TransformDataset:
         # Tokenization
         df["tokens"] = df["stopword"].apply(self.tokenize)
 
-        # Translate pakai teks yang masih natural (misalnya shortened)
-        df["translate_english"] = df["shortened"].apply(self.translate_to_english)
+        # # Translate couse not accurate for sentiment
+        # df["translate_english"] = df["shortened"].apply(self.translate_to_english)
 
-        # Sentiment
-        df["sentiment"] = df["translate_english"].apply(self.get_sentiment)
+        # Sentiment using (zero-shot) my device can't handle it
+        # df["sentiment"] = df["shortened"].apply(self.get_sentiment)
+
+        # change datetime UTC
+        df["published_at"] = pd.to_datetime(df["published_at"], utc=True)
+
+        # convert to WIB (Asia/Jakarta)
+        df["published_at_wib"] = df["published_at"].dt.tz_convert("Asia/Jakarta")
+
+        # take year published
+        df["year_wib"] = df["published_at_wib"].dt.year
+
+        # take mounth published (0-12)
+        df["month_wib"] = df["published_at_wib"].dt.month
+
+        # take day published
+        df["day_wib"] = df["published_at_wib"].dt.day
+
+        # take hour published (0-23)
+        df["hour_wib"] = df["published_at_wib"].dt.hour
 
         field_user = [
             "video_id",
             "video_title",
             "stopword",
             "tokens",
-            "translate_english",
-            "sentiment",
-            "published_at"
+            # "sentiment", this si for sentiment prediction my device can't handle it
+            "published_at_wib",
+            "year_wib",
+            "month_wib",
+            "day_wib",
+            "hour_wib"
         ]
         new_df = df[field_user]
         # drop duplicates jika ada

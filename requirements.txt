@@ -1,6 +1,7 @@
 google-api-python-client
 python-dotenv
-textblob
 pandas
 deep-translator
 Sastrawi
+# transformers this is for model sentiment prediction but my device can't handle it 
+# torch this is for model sentiment prediction but my device can't handle it 

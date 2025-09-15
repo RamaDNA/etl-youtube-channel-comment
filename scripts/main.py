@@ -1,6 +1,7 @@
 #class function
 from youtube_api import YouTubeAPI
 from dataset_comment_transform import TransformDataset
+from data_transform_pipeline import YouTubeDataPipeline
 
 
 #library
@@ -31,7 +32,22 @@ def main():
 
     # preprocessing CSV
     transform = TransformDataset("latest_video_comments.csv")
-    transform.save_to_csv("data_processed.csv")
+    transform.save_to_csv("processed/staging.csv")
+
+    pipeline = YouTubeDataPipeline("processed/staging.csv", output_dir="processed")
+
+    # Staging
+    pipeline.create_staging()
+    pipeline.save_staging()
+
+    # Intermediate
+    pipeline.create_intermediate()
+    pipeline.save_intermediate()
+
+    # Data Mart
+    pipeline.create_data_mart()
+    pipeline.save_data_mart()
+
 
 
 

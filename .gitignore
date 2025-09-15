@@ -5,7 +5,10 @@
 .env.*
 !.env.example   # keep example as template
 
-# Kalau ada .env.example di subfolder juga keep
+config/gcp_key.json
+config/gcp_key.json.*
+
+# if have .env in sub folder
 !**/.env.example
 
 # ========================================

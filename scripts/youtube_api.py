@@ -20,48 +20,81 @@ class YouTubeAPI:
         video_ids = [item["id"]["videoId"] for item in response["items"]]
         return video_ids
 
-    def get_comments(self, video_id):
-        """Ambil semua komentar dari sebuah video + judul video"""
-        comments = []
-        next_page_token = None
+    # def get_comments(self, video_id):
+    #     """Ambil semua komentar dari sebuah video + judul video"""
+    #     comments = []
+    #     next_page_token = None
 
-        # Ambil title video sekali
-        video_request = self.youtube.videos().list(
-            part="snippet",
-            id=video_id
-        )
+    #     # Ambil title video sekali
+    #     video_request = self.youtube.videos().list(
+    #         part="snippet",
+    #         id=video_id
+    #     )
+    #     video_response = video_request.execute()
+    #     video_title = video_response["items"][0]["snippet"]["title"]
+
+    #     while True:
+    #         request = self.youtube.commentThreads().list(
+    #             part="snippet",
+    #             videoId=video_id,
+    #             maxResults=100,
+    #             pageToken=next_page_token,
+    #             textFormat="plainText"
+    #         )
+    #         response = request.execute()
+
+    #         for item in response["items"]:
+    #             top_comment = item["snippet"]["topLevelComment"]["snippet"]
+    #             author = top_comment["authorDisplayName"]
+    #             text = top_comment["textDisplay"]
+    #             published_at = top_comment["publishedAt"]
+    #             comments.append([video_id, video_title, author, text, published_at])
+
+    #             # Ambil reply jika ada
+    #             if "replies" in item:
+    #                 for reply in item["replies"]["comments"]:
+    #                     reply_snippet = reply["snippet"]
+    #                     reply_author = reply_snippet["authorDisplayName"]
+    #                     reply_text = reply_snippet["textDisplay"]
+    #                     reply_published_at = reply_snippet["publishedAt"]
+    #                     comments.append([video_id, video_title, reply_author, reply_text, reply_published_at])
+
+    #         next_page_token = response.get("nextPageToken")
+    #         if not next_page_token:
+    #             break
+
+    #     return comments
+    
+    def get_comments(self, video_id, limit=100):
+        comments = []
+
+        # Ambil judul video
+        video_request = self.youtube.videos().list(part="snippet", id=video_id)
         video_response = video_request.execute()
         video_title = video_response["items"][0]["snippet"]["title"]
 
-        while True:
-            request = self.youtube.commentThreads().list(
-                part="snippet",
-                videoId=video_id,
-                maxResults=100,
-                pageToken=next_page_token,
-                textFormat="plainText"
-            )
-            response = request.execute()
+        # Ambil 1 page komentar (max 100 top-level)
+        request = self.youtube.commentThreads().list(
+            part="snippet,replies",
+            videoId=video_id,
+            maxResults=limit,
+            textFormat="plainText"
+        )
+        response = request.execute()
 
-            for item in response["items"]:
-                top_comment = item["snippet"]["topLevelComment"]["snippet"]
-                author = top_comment["authorDisplayName"]
-                text = top_comment["textDisplay"]
-                published_at = top_comment["publishedAt"]
-                comments.append([video_id, video_title, author, text, published_at])
+        for item in response["items"]:
+            top_comment = item["snippet"]["topLevelComment"]["snippet"]
+            text = top_comment["textDisplay"]
+            published_at = top_comment["publishedAt"]
+            comments.append([video_id, video_title, text, published_at])
 
-                # Ambil reply jika ada
-                if "replies" in item:
-                    for reply in item["replies"]["comments"]:
-                        reply_snippet = reply["snippet"]
-                        reply_author = reply_snippet["authorDisplayName"]
-                        reply_text = reply_snippet["textDisplay"]
-                        reply_published_at = reply_snippet["publishedAt"]
-                        comments.append([video_id, video_title, reply_author, reply_text, reply_published_at])
-
-            next_page_token = response.get("nextPageToken")
-            if not next_page_token:
-                break
+            # Ambil reply kalau ada (max 5)
+            if "replies" in item:
+                for reply in item["replies"]["comments"]:
+                    reply_snippet = reply["snippet"]
+                    reply_text = reply_snippet["textDisplay"]
+                    reply_published_at = reply_snippet["publishedAt"]
+                    comments.append([video_id, video_title, reply_text, reply_published_at])
 
         return comments
 
@@ -69,6 +102,6 @@ class YouTubeAPI:
         """Simpan komentar ke file CSV"""
         with open(filename, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow(["video_id", "video_title","author", "comment", "published_at"])
+            writer.writerow(["video_id", "video_title", "comment", "published_at"])
             writer.writerows(comments)
         print(f"Selesai! Komentar disimpan di {filename}")
