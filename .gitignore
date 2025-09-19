@@ -15,8 +15,8 @@ config/gcp_key.json.*
 # ========================================
 # Output / generated files
 # ========================================
-scripts/latest_video_comments.csv
-scripts/latest_video_comments.csv.*
+scripts/raw_data_latest_video_comments.csv
+scripts/raw_data_latest_video_comments.csv.*
 
 
 # ========================================

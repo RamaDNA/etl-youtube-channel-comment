@@ -9,4 +9,5 @@ services:
     env_file: .env
     volumes:
       - ./scripts:/app
+      - ./config/gcp_key.json:/config/gcp_key.json:ro
     command: python main.py

@@ -3,5 +3,6 @@ python-dotenv
 pandas
 deep-translator
 Sastrawi
+google-cloud-bigquery
 # transformers this is for model sentiment prediction but my device can't handle it 
 # torch this is for model sentiment prediction but my device can't handle it 
