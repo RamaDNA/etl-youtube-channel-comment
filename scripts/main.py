@@ -33,17 +33,38 @@ def main():
     yt = YouTubeAPI(os.getenv("YOUTUBE_API_KEY"), os.getenv("CHANNEL_ID"))
 
     print("Ambil video terbaru dari channel...")
-    latest_videos = yt.get_latest_videos(max_results=5)  # ubah angka untuk ambil lebih banyak video
+    latest_videos = yt.get_latest_videos(max_results=10)  # ubah angka untuk ambil lebih banyak video
     print(f"Video terbaru: {latest_videos}")
 
     all_comments = []
+    #-------------------------- this code for get all data comments ------------------------------
+    # for video_id in latest_videos:
+    #     print(f"Ambil komentar dari video {video_id}...")
+    #     comments = yt.get_comments(video_id)
+    #     print(f"Jumlah komentar untuk {video_id}: {len(comments)}")
+    #     for c in comments:
+    #         print(c)
+    #     all_comments.extend(comments)
+
+    #-------------------------- this code for get only 100 > data comments ------------------------------
     for video_id in latest_videos:
-        print(f"Ambil komentar dari video {video_id}...")
+        print(f"Fetching comments from video {video_id}...")
         comments = yt.get_comments(video_id)
-        print(f"Jumlah komentar untuk {video_id}: {len(comments)}")
-        for c in comments:
-            print(c)
-        all_comments.extend(comments)
+        print(f"Number of comments for {video_id}: {len(comments)}")
+
+        if len(comments) >= 100:
+            # ✅ Found a video with at least 100 comments
+            selected_video = video_id
+            all_comments = comments
+            break
+        else:
+            print(f"⚠️ Skipping {video_id}, not enough comments (<100).")
+
+    if selected_video:
+        print(f"✅ Selected video: {selected_video} with {len(all_comments)} comments")
+    else:
+        print("❌ No video found with at least 100 comments.")
+    #-------------------------- End Code for get only 100 > data comments ------------------------------
 
     # Simpan ke CSV
     yt.save_to_csv(all_comments, "raw_data_latest_video_comments.csv")

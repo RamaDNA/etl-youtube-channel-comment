@@ -17,7 +17,7 @@ class YouTubeDataPipeline:
         df = self.raw.copy()
         df = df.dropna(subset=["stopword", "tokens"])
 
-        # pastikan kolom tokens benar-benar list, bukan string
+        # make sure ur data is list not the string
         df["tokens"] = df["tokens"].apply(
             lambda x: ast.literal_eval(x) if isinstance(x, str) else x
         )
@@ -54,12 +54,14 @@ class YouTubeDataPipeline:
             right=False
         )
 
-        # 🔑 tambahan: hitung word frequency
-        all_tokens = [token for tokens in df["tokens"] for token in tokens]
-        counter = Counter(all_tokens)
+            # 🔑 Word frequency per video_id
         word_freq = (
-            pd.DataFrame(counter.items(), columns=["word", "count"])
-            .sort_values("count", ascending=False)
+            df.explode("tokens")  # explode token lists into rows
+            .groupby(["video_id", "tokens"])  # count per video_id and word
+            .size()
+            .reset_index(name="count")
+            .rename(columns={"tokens": "word"})
+            .sort_values(["video_id", "count"], ascending=[True, False])
         )
         self.word_freq = word_freq
 
