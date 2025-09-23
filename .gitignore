@@ -6,6 +6,8 @@
 !.env.example   # keep example as template
 
 __pycache__/
+*.pyc
+
 
 **/gcp_key.json
 config/gcp_key.json
