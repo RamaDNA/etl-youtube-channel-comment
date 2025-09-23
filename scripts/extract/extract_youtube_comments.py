@@ -65,7 +65,7 @@ class YouTubeAPI:
 
     #     return comments
     
-    def get_comments(self, video_id, limit=100):
+    def get_comments(self, video_id, limit=500):
         comments = []
 
         # Ambil judul video

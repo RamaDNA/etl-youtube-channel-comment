@@ -1,6 +1,6 @@
 import pandas as pd
 import re
-from deep_translator import GoogleTranslator
+# from deep_translator import GoogleTranslator
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 
@@ -73,12 +73,12 @@ class TransformDataset:
     def stemming(self, text):
         return self.stemmer.stem(text)
 
-    def translate_to_english(self, text):
-        try:
-            translated = GoogleTranslator(source="id", target="en").translate(str(text))
-            return translated
-        except Exception:
-            return str(text)
+    # def translate_to_english(self, text):
+    #     try:
+    #         translated = GoogleTranslator(source="id", target="en").translate(str(text))
+    #         return translated
+    #     except Exception:
+    #         return str(text)
 
     def get_sentiment(self, text):
         """

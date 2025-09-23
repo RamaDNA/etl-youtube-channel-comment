@@ -5,9 +5,19 @@
 .env.*
 !.env.example   # keep example as template
 
+__pycache__/
+
+**/gcp_key.json
 config/gcp_key.json
 config/gcp_key.json.*
 !config/gcp_key.json.example
+
+# Ignore airflow log
+airflow/logs/
+airflow/logs/*
+airflow/config/airflow.cfg
+airflow/config/airflow.cfg.*
+
 
 # if have .env in sub folder
 !**/.env.example

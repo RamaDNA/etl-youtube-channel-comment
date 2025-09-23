@@ -32,11 +32,6 @@ csv_file_word_freq = os.getenv("CSV_FILE_WORD_FREQ")
 def main():
     yt = YouTubeAPI(os.getenv("YOUTUBE_API_KEY"), os.getenv("CHANNEL_ID"))
 
-    print("Ambil video terbaru dari channel...")
-    latest_videos = yt.get_latest_videos(max_results=10)  # ubah angka untuk ambil lebih banyak video
-    print(f"Video terbaru: {latest_videos}")
-
-    all_comments = []
     #-------------------------- this code for get all data comments ------------------------------
     # for video_id in latest_videos:
     #     print(f"Ambil komentar dari video {video_id}...")
@@ -47,23 +42,45 @@ def main():
     #     all_comments.extend(comments)
 
     #-------------------------- this code for get only 100 > data comments ------------------------------
-    for video_id in latest_videos:
-        print(f"Fetching comments from video {video_id}...")
-        comments = yt.get_comments(video_id)
-        print(f"Number of comments for {video_id}: {len(comments)}")
+    print("Ambil video terbaru dari channel...")
 
-        if len(comments) >= 100:
-            # ✅ Found a video with at least 100 comments
-            selected_video = video_id
-            all_comments = comments
-            break
-        else:
-            print(f"⚠️ Skipping {video_id}, not enough comments (<100).")
+    max_results = 10
+    selected_videos = []     # simpan video_id yang lolos
+    all_comments = {}        # simpan komentar per video_id
+    checked_videos = set()   # simpan video yang sudah dicek
 
-    if selected_video:
-        print(f"✅ Selected video: {selected_video} with {len(all_comments)} comments")
-    else:
-        print("❌ No video found with at least 100 comments.")
+    while len(selected_videos) < 2:  # butuh 5 video
+        latest_videos = yt.get_latest_videos(max_results=max_results)
+        print(f"🔄 Ambil {max_results} video terbaru...")
+
+        for video_id in latest_videos:
+            if video_id in checked_videos:
+                continue  # skip kalau sudah pernah dicek
+
+            print(f"Fetching comments from video {video_id}...")
+            comments = yt.get_comments(video_id)
+            print(f"Number of comments for {video_id}: {len(comments)}")
+
+            checked_videos.add(video_id)  # tandai sudah dicek
+
+            if len(comments) >= 100:
+                selected_videos.append(video_id)
+                all_comments[video_id] = comments
+                print(f"✅ Selected video: {video_id} with {len(comments)} comments "
+                    f"(total: {len(selected_videos)}/5)")
+
+                if len(selected_videos) == 5:
+                    break
+            else:
+                print(f"⚠️ Skipping {video_id}, not enough comments (<100).")
+
+        if len(selected_videos) < 5:
+            print(f"❌ Belum cukup video ≥100 komentar. Tambah max_results jadi {max_results + 1}")
+            max_results += 1
+
+    print("\n🎉 Selesai, daftar video yang lolos:")
+    for vid in selected_videos:
+        print(f"- {vid} dengan {len(all_comments[vid])} komentar")
     #-------------------------- End Code for get only 100 > data comments ------------------------------
 
     # Simpan ke CSV
@@ -71,9 +88,9 @@ def main():
 
     # preprocessing CSV
     transform = TransformDataset("raw_data_latest_video_comments.csv")
-    transform.save_to_csv("processed/staging.csv")
+    transform.save_to_csv("/opt/airflow/scripts/processed/staging.csv")
 
-    pipeline = YouTubeDataPipeline("processed/staging.csv", output_dir="processed")
+    pipeline = YouTubeDataPipeline("/opt/airflow/scripts/processed/staging.csv", output_dir="processed")
 
     # Staging
     pipeline.create_staging()
