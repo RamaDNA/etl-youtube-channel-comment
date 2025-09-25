@@ -127,7 +127,7 @@ class TransformDataset:
         # df["sentiment"] = df["shortened"].apply(self.get_sentiment)
 
         # change datetime UTC
-        df["published_at"] = pd.to_datetime(df["published_at"], utc=True)
+        df["published_at"] = pd.to_datetime(df["published_at"] , utc=True)
 
         # convert to WIB (Asia/Jakarta)
         df["published_at_wib"] = df["published_at"].dt.tz_convert("Asia/Jakarta")

@@ -5,7 +5,9 @@
 .env.*
 !.env.example   # keep example as template
 
-__pycache__/
+# Hanya ignore __pycache__ di dalam scripts/
+scripts/__pycache__/
+**__pycache__/
 *.pyc
 
 

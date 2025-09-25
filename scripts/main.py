@@ -1,5 +1,6 @@
 #class function
 from extract.extract_youtube_comments import YouTubeAPI
+from extract.extract_trending_comments import YouTubeTrendingAPI
 from transform.preprocessing_data import TransformDataset
 from transform.transform_pipeline import YouTubeDataPipeline
 from load.load_to_bigquery import BigQueryHelper
@@ -30,59 +31,78 @@ table_id_word_freq = os.getenv("TABLE_ID_WORD_FREQ")
 csv_file_word_freq = os.getenv("CSV_FILE_WORD_FREQ")
 
 def main():
-    yt = YouTubeAPI(os.getenv("YOUTUBE_API_KEY"), os.getenv("CHANNEL_ID"))
-
-    #-------------------------- this code for get all data comments ------------------------------
-    # for video_id in latest_videos:
-    #     print(f"Ambil komentar dari video {video_id}...")
-    #     comments = yt.get_comments(video_id)
-    #     print(f"Jumlah komentar untuk {video_id}: {len(comments)}")
-    #     for c in comments:
-    #         print(c)
-    #     all_comments.extend(comments)
 
     #-------------------------- this code for get only 100 > data comments ------------------------------
-    print("Ambil video terbaru dari channel...")
 
-    max_results = 10
-    selected_videos = []     # simpan video_id yang lolos
-    all_comments = {}        # simpan komentar per video_id
-    checked_videos = set()   # simpan video yang sudah dicek
+    # yt = YouTubeAPI(os.getenv("YOUTUBE_API_KEY"), os.getenv("CHANNEL_ID"))
+    # print("Ambil video terbaru dari channel...")
 
-    while len(selected_videos) < 2:  # butuh 5 video
-        latest_videos = yt.get_latest_videos(max_results=max_results)
-        print(f"🔄 Ambil {max_results} video terbaru...")
+    # max_results = 10
+    # selected_videos = []     # save video_id 
+    # all_comments = {}        # save comments {video_id: comments}
+    # checked_videos = set()   # save video_id has been checked
+    # need_video = 1           # jumlah video yang dibutuhkan
 
-        for video_id in latest_videos:
-            if video_id in checked_videos:
-                continue  # skip kalau sudah pernah dicek
+    # while len(selected_videos) < need_video:  
+    #     latest_videos = yt.get_latest_videos(max_results=max_results)
+    #     print(f"🔄 Ambil {max_results} video terbaru...")
 
-            print(f"Fetching comments from video {video_id}...")
-            comments = yt.get_comments(video_id)
-            print(f"Number of comments for {video_id}: {len(comments)}")
+    #     for video_id in latest_videos:
+    #         if video_id in checked_videos:
+    #             continue  # skip kalau sudah pernah dicek
 
-            checked_videos.add(video_id)  # tandai sudah dicek
+    #         print(f"Fetching comments from video {video_id}...")
+    #         comments = yt.get_comments(video_id)
+    #         print(f"Number of comments for {video_id}: {len(comments)}")
 
-            if len(comments) >= 100:
-                selected_videos.append(video_id)
-                all_comments[video_id] = comments
-                print(f"✅ Selected video: {video_id} with {len(comments)} comments "
-                    f"(total: {len(selected_videos)}/5)")
+    #         checked_videos.add(video_id)  # tandai sudah dicek
 
-                if len(selected_videos) == 5:
-                    break
-            else:
-                print(f"⚠️ Skipping {video_id}, not enough comments (<100).")
+    #         if len(comments) >= 5:
+    #             selected_videos.append(video_id)
+    #             all_comments[video_id] = comments
+    #             print(f"✅ Selected video: {video_id} with {len(comments)} comments "
+    #                 f"(total: {len(selected_videos)}/{need_video})")
 
-        if len(selected_videos) < 5:
-            print(f"❌ Belum cukup video ≥100 komentar. Tambah max_results jadi {max_results + 1}")
-            max_results += 1
+    #             if len(selected_videos) == need_video:
+    #                 break
+    #         else:
+    #             print(f"⚠️ Skipping {video_id}, not enough comments (<100).")
 
-    print("\n🎉 Selesai, daftar video yang lolos:")
-    for vid in selected_videos:
-        print(f"- {vid} dengan {len(all_comments[vid])} komentar")
+    #     if len(selected_videos) < need_video:
+    #         print(f"❌ Belum cukup video ≥100 komentar. Tambah max_results jadi {max_results + 1}")
+    #         max_results += 1
+
+    # print("\n🎉 Selesai, daftar video yang lolos:")
+    # for vid in selected_videos:
+    #     print(f"- {vid} dengan {len(all_comments[vid])} komentar")
+
+    # # ==================================================
+    # # 🔹 Flatten dictionary ke list supaya tidak kosong
+    # # ==================================================
+    # flat_comments = []
+    # for vid, comments in all_comments.items():
+    #     flat_comments.extend(comments)   # gabung semua komentar
+
+    # print(f"\nTotal komentar yang dikumpulkan: {len(flat_comments)}")
+
     #-------------------------- End Code for get only 100 > data comments ------------------------------
+    
+    #-------------------------- Start Code for get trending data > data comments ------------------------------
+    yt = YouTubeTrendingAPI(os.getenv("YOUTUBE_API_KEY"))
+    print("Ambil video trending...")
 
+    print("Mengambil video trending...")
+    videos = yt.get_trending_videos(max_results=3, region_code="ID")
+
+    all_comments = []
+    for v in videos:
+        video_id = v["video_id"]
+        video_title = v["title"]
+        print(f"Fetching comments from video {video_id} - {video_title} ...")
+        comments = yt.get_comments(video_id, video_title, limit=200)
+        all_comments.extend(comments)
+
+    #-------------------------- End Code for get trending data > data comments ------------------------------
     # Simpan ke CSV
     yt.save_to_csv(all_comments, "raw_data_latest_video_comments.csv")
 
